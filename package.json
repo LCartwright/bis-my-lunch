@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "fs": "0.0.1-security",
+    "http": "0.0.0",
     "jquery": "^3.1.1",
     "jsdom": "^9.9.1"
   }
