@@ -1,5 +1,5 @@
 {
-  "name": "bissy-lunch",
+  "name": "bis-my-lunch",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -13,6 +13,7 @@
     "fs": "0.0.1-security",
     "http": "0.0.0",
     "jquery": "^3.1.1",
-    "jsdom": "^9.9.1"
+    "jsdom": "^9.9.1",
+    "pdf2json": "^1.1.7"
   }
 }
