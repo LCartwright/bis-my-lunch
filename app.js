@@ -9,7 +9,7 @@ let PDFParser = require("pdf2json");
 
 var source = process.env.source;
 
-if (source == "WEB") {
+if (source == "URL") {
   jsdom.env({
     url: process.env.URL,
     src: [jquery],
@@ -57,29 +57,27 @@ if (source == "WEB") {
   };
 }
 else if (source == "FILE") {
-
+  var readable = fs.createReadStream(process.env.file);
+  parseFromStream(readable);
 }
 else {
   process.exit(1);
 }
 
-function parseFromStream(writeStream) {
+function parseFromStream(rs) {
+  console.log("Reading stream...");
   var buffers = [];
-  writeStream.on('data', function(buffer) {
+  rs.on('data', function(buffer) {
     buffers.push(buffer);
   });
-  writeStream.on('end', function() {
+  rs.on('end', function() {
+    console.log("Stream ended, parsing pdf");
     var buffer = Buffer.concat(buffers);
-
     let pdfParser = new PDFParser(this,1);
-
     pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
-    
     pdfParser.on("pdfParser_dataReady", pdfData => {
       console.log(pdfParser.getRawTextContent());
     });
-
     pdfParser.parseBuffer(buffer);
-    
   });
 }
