@@ -1,13 +1,14 @@
+require('dotenv').config();
 var jsdom = require("jsdom");
 var fs = require("fs");
 var http = require('http');
 var url = require("url");
 var path = require("path");
-var jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.slim.js", "utf-8");
+var jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.slim.js", "utf-8"); 
 let PDFParser = require("pdf2json");
- 
+
 jsdom.env({
-  url: "http://bis.baxterstorey.com/extranet/restaurant_and_cafe.vc",
+  url: process.env.URL,
   src: [jquery],
   done: function (err, window) {
     var $ = window.$;
