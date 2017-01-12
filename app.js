@@ -4,6 +4,7 @@ var http = require('http');
 var url = require("url");
 var path = require("path");
 var jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.slim.js", "utf-8");
+let PDFParser = require("pdf2json");
  
 jsdom.env({
   url: "http://bis.baxterstorey.com/extranet/restaurant_and_cafe.vc",
@@ -42,13 +43,25 @@ jsdom.env({
   }
 });
 
-/** https://stackoverflow.com/questions/11944932/how-to-download-a-file-with-node-js-without-using-third-party-libraries */
 var download = function(url, dest, cb) {
-  var file = fs.createWriteStream(dest);
   var request = http.get(url, function(response) {
-    response.pipe(file);
-    file.on('finish', function() {
-      file.close(cb(true));  // close() is async, call cb after close completes.
+    var buffers = [];
+    response.on('data', function(buffer) {
+      buffers.push(buffer);
+    });
+    response.on('end', function() {
+      var buffer = Buffer.concat(buffers);
+  
+      let pdfParser = new PDFParser(this,1);
+  
+      pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
+      
+      pdfParser.on("pdfParser_dataReady", pdfData => {
+        console.log(pdfParser.getRawTextContent());
+      });
+
+      pdfParser.parseBuffer(buffer);
+
     });
   }).on('error', function(err) { // Handle errors
     fs.unlink(dest); // Delete the file async. (But we don't check the result)
