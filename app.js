@@ -5,9 +5,9 @@ var http = require('http');
 var url = require("url");
 var path = require("path");
 var jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.slim.js", "utf-8"); 
-let PDFParser = require("pdf2json");
-
+var PDFParser = require("pdf2json");
 var source = process.env.source;
+// var querystring = require('querystring');
 
 if (source == "URL") {
   jsdom.env({
@@ -75,9 +75,27 @@ function parseFromStream(rs) {
     var buffer = Buffer.concat(buffers);
     let pdfParser = new PDFParser(this,1);
     pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
-    pdfParser.on("pdfParser_dataReady", pdfData => {
-      console.log(pdfParser.getRawTextContent());
-    });
+    pdfParser.on("pdfParser_dataReady", parsePDFData);
     pdfParser.parseBuffer(buffer);
   });
+}
+
+function parsePDFData(pdfData) {
+  var page = pdfData["formImage"]["Pages"][0];
+  var texts = [];
+  // Flatten text arrays, remove unused attributes
+  page["Texts"].forEach(function(e) {
+    var n = {};
+    n.xStart = e.x;
+    n.xEnd = (parseFloat(e.x) +  parseFloat(e.w)).toFixed(3);
+    n.y = e.y;
+    n.w = e.w;
+    n.text = "";
+    e.R.forEach(function(t) {
+      n.text = n.text + t.T;
+    }, this);
+    n.text = decodeURIComponent(n.text);
+    texts.push(n);
+  }, this);
+  console.log(JSON.stringify(texts));
 }
