@@ -126,6 +126,7 @@ function parsePDFData(pdfData) {
   var yLineNext = true;
   var yIds = [];
 
+  //all yIds first
   yLine.forEach(function(e){
     yIds.push(e.id);
   }, this);
@@ -138,24 +139,63 @@ function parsePDFData(pdfData) {
     }
   }
 
+  var yGroups = [];
   while (yLineNext) {
     var group = {};
     group.texts = [];
     var nextYIds = [];
     for(var i = 0; i < yIds.length; i++) {
+      // read next element
       var id = yIds[i];
+      console.log("Processing id: " + id);
+      ySegment = getById(yLine, id);
       if (i == 0) {
-        group.texts.push(getById(yLine, id));
+        // read first element
+          // add to new object
+        console.log("Adding id " + id + "to array as it is the first element");
+        group.texts.push(ySegment);
+        continue;
+      }
+      // 
+      var overlaps = false;
+      group.texts.forEach(function(e) {
+        if (!this.overlaps) {
+          console.log("Comparing id " + id + " with " + e.id);
+          // + tolerance?
+          var overlapFromLeft = ySegment.xStart <= e.xStart && ySegment.xEnd >= e.xStart && ySegment.xEnd <= e.xEnd;
+          var overlapFromRight = e.xStart <= ySegment.xStart && e.xEnd >= ySegment.xStart && e.xEnd <= ySegment.xEnd;
+          var contains = ySegment.xStart <= e.xStart && ySegment.xEnd >= e.xEnd;
+          var containedBy = e.xStart >= ySegment.xStart && e.xEnd >= ySegment.xEnd;
+          if (overlapFromLeft || overlapFromRight || contains || containedBy) {
+            console.log("id: " + ySegment.id + " overlaps with id: " + e.id + "; overlapFromLeft: " + overlapFromLeft + "; overlapFromRight: " + overlapFromRight + "; contains: " + contains +"; containedBy: " + containedBy);
+            this.overlaps = true;
+          }
+        }
+      }, this);
+      if (overlaps)  {
+        group.texts.push(ySegment);
+      }
+      else {
+        nextYIds.push(ySegment.id);
       }
     }
-    yIds.forEach(function(id) {
-      
-    }, this);
+    yGroups.push(group);
+    if (nextYIds.length > 0) {
+      yIds = nextYIds;
+    }
+    else {
+      yLineNext = false;
+    }
   }
+
+  console.log(JSON.stringify(yGroups));
+
+
 
   // Read first element, 
   //    add to new object
   //    remove from pool of id's to process
+  
   // read next element then check
   //    is the ID consecutive
   //    does the text overlap/touch
@@ -166,6 +206,6 @@ function parsePDFData(pdfData) {
   // might be easier to just add the next round of id's to the array
 
 
-  console.log(JSON.stringify(yLine));
+  // console.log(JSON.stringify(yLine));
 
 }
